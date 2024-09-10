@@ -10,25 +10,43 @@ function App() {
   const searchResult = document.getElementById("search-result");
   const [movie, setMovie] = useState("");
   const [lastMovieSearched, setLastMovieSearched] = useState("");
-  const [peliculas, setPeliculas] = useState("");
+  const [error, setError] = useState("");
 
   const handleInputChange = (event) => {
+    if (event.target.value == null) {
+      console.log("pelicula no encontrada");
+      return;
+    }
     setMovie(event.target.value);
   };
 
   const handleSubmit = (event) => {
     event.preventDefault();
+
+    if (!movie.trim()) {
+      console.log("El campo de búsqueda está vacío.");
+      setError("Por favor, ingresa un nombre no vacío");
+      return;
+    }
+
     if (movie == lastMovieSearched) {
       console.log("Esta película acabas de buscarla");
+      setError("Acabas de buscar esta pelicula, ingresa otro texto");
       return;
     }
     console.log("Pelicula Buscada:", movie);
     setLastMovieSearched(movie);
     // Limpia el contenido previo
     searchResult.innerHTML = "";
+    setError(null);
     fetch(URL_PELICULA_INFO + `${movie}`)
       .then((res) => res.json())
       .then((response) => {
+        if (response.Response == "False") {
+          console.log("No se encontraron resultados");
+          setError("No se encontraron resultados");
+          return;
+        }
         for (let index = 0; index < response.Search.length; index++) {
           const image = document.createElement("img");
           image.src = response.Search[index].Poster;
@@ -60,6 +78,7 @@ function App() {
         />
         <button type="submit">Buscar</button>
       </form>
+      {error && <div className="error-message">{error}</div>}
       <div id="search-result"></div>
     </div>
   );
